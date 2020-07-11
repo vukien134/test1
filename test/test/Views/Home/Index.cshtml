@@ -1,0 +1,270 @@
+﻿@*<h1>Danh sách </h1>
+      <div>
+          <input type="text"  name="timkiem"  />
+          <button type="button" class="btn btn-primary" onclick="return timkiem();">Tìm Kiếm</button>
+      </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover" id="list">
+                    <thead>
+                        <tr>
+
+                            <th>ID</th>
+                            <th>Tên Sản Phẩm</th>
+                            <th>Giá Sản Phẩm</th>
+                            <th>#</th>
+                        </tr>
+                    </thead>
+                    <tbody class="Loads">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+        Create
+    </button>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">San pham</h4>
+                </div>
+                <div class="modal-body">
+                    <form id="formStudent">
+                        <div class="form-group">
+                            <label for="id">id</label>
+                            <input type="text" name="id" class="form-control" id="id" placeholder="id">
+                        </div>
+                        <div class="form-group">
+                            <label for="tenSp">Name</label>
+                            <input type="text" name="tenSp" class="form-control" id="tenSp" placeholder="tenSp">
+                        </div>
+                        <div class="form-group">
+                            <label for="giaSp">giaSp</label>
+                            <input type="text" name="giaSp" class="form-control" id="giaSp" placeholder="giaSp">
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnAdd" onclick="return insert();">Add</button>
+                    <button type="button" class="btn btn-primary" id="btnUpdate"  onclick="Update();">Update</button>
+                  <button type="button" class="btn btn-primary" id="btnDelete"  onclick="return _delete();">delelte</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/JavaScript.js"></script>*@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css" charset="utp-8" />
+    <script src="http://cdn.webix.com/edge/webix.js"></script>
+
+</head>
+
+<body>
+
+
+    <div id="">
+
+        <div id="areaA" style="width:500px; height:70px; margin: 40px;"></div>
+        <div id="grid"></div>
+    </div>
+
+
+
+    <script>
+        var grid = {
+            id: "grid", container: "areaA",
+
+            view: "datatable",
+            columns: [
+              { id: "id", header: "id", width: 60 },
+              { id: "tenSp", header: "Tên Sản Phẩm", width: 200 },
+              { id: "giaSp", header: "Giá Sản Phẩm", width: 70 },
+
+            ],
+
+            url: "/api/Test",
+            select: true,
+            scroll: false,
+            on: {
+                "onItemClick": function (id) {
+                    $$("value").setValue(this.getItem(id.row)[id.column]);
+                }
+            },
+            pager: {
+                size: 4,
+                group: 4
+            },
+        }
+
+        webix.ready(function () {
+            webix.ui({
+                rows: [
+                  grid,
+                ],
+            });
+        });
+
+        var counter = 0;
+        webix.ui({
+            view: "areaA",
+            container: "areaA",
+            view: "form", scroll: false,
+
+            cols: [
+                {
+                    rows: [
+                      {
+                          cols: [
+                            { view: "text", id: "value" },
+                            { id :"tensp",
+                            view: "richselect",
+                                
+                                padding: 10,
+                                margin: 10,
+                                    //click: function () {
+                                    //    options : [
+                                    //        webix.ajax().headers({
+                                    //            "Content-type": "application/json"
+                                    //        }).get("/api/Test/thu", function (rejust) {
+                                    //            abc = JSON.parse(rejust);
+                                    //            $.each(abc, function (index, values) {
+                                    //                data: [{ id: index, value: values.tenSp }]
+                                    //            })
+                                               
+                                    //        })
+                                    //    ]
+                                //}
+                                
+                                options: "/api/Test/thu"
+                            },
+                        {
+                            view: "button", value: "Thêm Mới ", click: function () {
+                                showForm("win2")
+                            }
+                        }, {
+                            view: "button", value: "update", click: "update_item()"
+                        },
+                        { view: "button", value: "Delete", click: "delete_item()" },
+                        {view: "button", value: "tìm kiếm", click: "seach_item()"}
+                          ]
+
+                      },
+                    ]
+                },
+            ]
+        });
+        seach_item = function () {
+            $$("grid").clearAll();
+            var value = $$("value").getValue().toLowerCase();
+            webix.ajax().headers({
+                "Content-type": "application/json"
+            }).get("/api/Test/timkiem?timkiem=" + value, function (rejust) {
+                rejust = JSON.parse(rejust);
+              
+                $.each(rejust, function (index, value) {
+                    $$("grid").add({
+                        id: value.id,
+                        tenSp: value.tenSp,
+                        giaSp: value.giaSp
+
+                    }, 0);
+                });
+            });
+
+        }
+        delete_item = function () {
+            var sel = $$("grid").getSelectedId();
+            if (!sel) return;
+            var value = $$("value").getValue();
+            var row = $$("grid").getItem(sel.row);
+            row[sel.column] = value;
+            webix.ajax().headers({
+                "Content-type": "application/json"
+            }).post("/api/Test/delete", JSON.stringify(row));
+            $$("grid").remove(sel);
+        }
+        update_item = function () {
+            var sel = $$("grid").getSelectedId();
+            if (!sel) return;
+            var value = $$("value").getValue();
+            var row = $$("grid").getItem(sel.row);
+            row[sel.column] = value;
+            webix.ajax().headers({
+                "Content-type": "application/json"
+            }).post("/api/Test/update", JSON.stringify((row)));
+            $$("grid").updateItem(sel);
+        };
+        var form = {
+            view: "form", id: "load",
+            borderless: true,
+            elements: [
+                { view: "text", label: 'id ', name: "id", id: "id" },
+                   { view: "text", label: 'Tên Sản Phẩm ', name: "tenSp", id: "tenSp" },
+               //{
+               //    view: "richselect",
+               //    label: 'Tên Sản Phẩm ',
+               //    name: "tenSp",
+               //    options: {
+               //        data: [
+
+               //                webix.ajax().headers({
+               //                    "Content-type": "application/json"
+               //                }).get("/api/Test", function (rejust) {
+               //                     rejust = JSON.parse(rejust);
+               //                    $.each(rejust, function (index, values) {
+               //                        { id: index; value: values.tenSp }
+               //                    })
+               //                })
+
+
+               //        ]
+               //    }
+               //},
+               { view: "text", label: 'Giá Sản Phẩm', name: "giaSp", id: "giaSp" },
+                {
+                    view: "button", value: "Thêm Mới", click: function () {
+                        webix.ajax().headers({
+                            "Content-type": "application/json"
+                        }).post("/api/test/insert", JSON.stringify(this.getFormView().getValues()));
+                        var values = $$("load").getValues();
+                        $$("grid").add({
+                            id: values.id,
+                            tenSp: values.tenSp,
+                            giaSp: values.giaSp
+                        }, 0);
+                    }
+                }
+            ],
+            elementsConfig: {
+                labelPosition: "top",
+            }
+        };
+
+        webix.ui({
+            view: "window",
+            id: "win2",
+            position: "center",
+            modal: true,
+            close: true,
+            head: "Thêm mới sản phẩm",
+            body: webix.copy(form),
+        });
+        function showForm(winId, node) {
+            $$(winId).getBody().clear();
+            $$(winId).show(node);
+            $$(winId).getBody().focus();
+        }
+    </script>
+
+    <script src="~/Scripts/jquery-1.10.2.js"></script>
+</body>
+</html>
